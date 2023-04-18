@@ -1,7 +1,5 @@
 #include "util/ipc_unix.h"
 
-namespace ftcp {
-
 int send_fd(int pair_fd, int target_fd) {
   struct iovec iov[1];
   struct msghdr msg;
@@ -70,5 +68,3 @@ int recv_fd(int pair_fd) {
   }
   return target_fd;
 }
-
-} //namespace ftcp

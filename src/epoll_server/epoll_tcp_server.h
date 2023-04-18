@@ -25,8 +25,6 @@
 #include "epoll_server/epoll_server_base.h"
 #include "tcp/tcp_connection.h"
 
-namespace ftcp {
-
 class EpollTCPServer : public EpollServerBase {
  public:
   explicit EpollTCPServer(const EpollRunMode&, const int&, const std::string&, const int&);
@@ -63,7 +61,5 @@ class EpollTCPServer : public EpollServerBase {
   static constexpr int kEventLen = 128;
   static constexpr int kListenBackLog = 128;
 };
-
-} //namespace ftcp
 
 #endif

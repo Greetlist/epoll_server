@@ -1,7 +1,5 @@
 #include "epoll_server/epoll_udp_server.h"
 
-namespace ftcp {
-
 EpollUDPServer::EpollUDPServer(const std::string& listen_addr, const int& listen_port) : listen_addr_(listen_addr), listen_port_(listen_port) {
   stop_ = false;
 }
@@ -148,5 +146,3 @@ void EpollUDPServer::StartMainEpoll() {
     }
   }
 }
-
-} //namespace ftcp

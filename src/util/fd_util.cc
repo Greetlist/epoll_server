@@ -1,7 +1,5 @@
 #include "util/fd_util.h"
 
-namespace ftcp {
-
 int set_nonblock(int fd) {
   int flags = fcntl(fd, F_GETFL, 0);
   flags |= O_NONBLOCK;
@@ -11,5 +9,3 @@ int set_nonblock(int fd) {
   }
   return status;
 }
-
-} //namespace ftcp

@@ -1,8 +1,10 @@
 add_rules("mode.debug", "mode.release")
 
 target("epoll_server")
-    set_kind("static")
-    add_files("src/*.cpp")
+    set_kind("binary")
+    add_files("src/**.cc")
+    add_includedirs("src")
+    add_links("pthread")
 
 --
 -- If you want to known more usage about xmake, please see https://xmake.io

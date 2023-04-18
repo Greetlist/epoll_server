@@ -3,8 +3,6 @@
 
 #include <thread>
 
-namespace ftcp {
-
 enum class EpollRunMode {
   UseProcess = 0,
   UseThread,
@@ -28,5 +26,4 @@ struct ThreadInfo {
   int pair_fd;
 };
 
-} //namespace ftcp
 #endif

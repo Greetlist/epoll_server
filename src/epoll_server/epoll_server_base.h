@@ -21,8 +21,6 @@
 #include "common/return_code.h"
 #include "logger/logger.h"
 
-namespace ftcp {
-
 class EpollServerBase {
 public:
   EpollServerBase() {};
@@ -36,7 +34,5 @@ public:
 protected:
   std::function<void(int, char*)> callback_func_;
 };
-
-} //namespace ftcp
 
 #endif

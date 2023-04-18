@@ -2,8 +2,6 @@
 #include "epoll_server/epoll_udp_server.h"
 #include "epoll_server/global_def.h"
 
-namespace ftcp {
-
 class EpollServerFactory {
  public:
    EpollServerFactory() = delete;
@@ -33,5 +31,3 @@ class EpollServerFactory {
 /* static */
 std::once_flag EpollServerFactory::instance_guard_;
 EpollServerBase* EpollServerFactory::instance_ = nullptr;
-
-} //namespace ftcp

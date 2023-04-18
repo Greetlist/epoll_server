@@ -5,10 +5,6 @@
 #include <unistd.h>
 #include <stdio.h>
 
-namespace ftcp {
-
 int set_nonblock(int fd);
-
-} //namespace ftcp
 
 #endif

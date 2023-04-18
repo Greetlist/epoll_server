@@ -18,12 +18,9 @@
 
 #include "common/return_code.h"
 #include "common/common_def.h"
-#include "network/struct_def.h"
 #include "logger/logger.h"
 #include "epoll_server/global_def.h"
 #include "epoll_server/epoll_server_base.h"
-
-namespace ftcp {
 
 class EpollUDPServer : public EpollServerBase {
  public:
@@ -51,7 +48,5 @@ class EpollUDPServer : public EpollServerBase {
   static constexpr int kEventLen = 128;
   static constexpr int kListenBackLog = 128;
 };
-
-} //namespace ftcp
 
 #endif

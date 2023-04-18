@@ -1,7 +1,5 @@
 #include "epoll_server/epoll_tcp_server.h"
 
-namespace ftcp {
-
 EpollTCPServer::EpollTCPServer(const EpollRunMode& mode, const int& parallel, const std::string& listen_addr, const int& listen_port) : mode_(mode), parallel_num_(parallel), listen_addr_(listen_addr), listen_port_(listen_port) {
   stop_ = false;
 }
@@ -152,11 +150,12 @@ void EpollTCPServer::MainWorker(int pair_fd) {
         memset(&ev, 0, sizeof(new_ev));
         new_ev.data.fd = client_fd;
         new_ev.events = EPOLLIN | EPOLLET;
+        //new_ev.events = EPOLLIN | EPOLLOUT;
         if ((ss = epoll_ctl(thread_ep, EPOLL_CTL_ADD, client_fd, &new_ev)) < 0) {
           LOG_ERROR("Epoll Add Error");
           continue;
         }
-        TcpConnection* new_connection = TcpConnection(client_fd);
+        TcpConnection* new_connection = new TcpConnection(client_fd);
         new_connection->Init();
         tcp_connections_[client_fd] = new_connection;
       } else {
@@ -172,7 +171,7 @@ void EpollTCPServer::MainWorker(int pair_fd) {
           tcp_connections_.erase(events[i].data.fd);
         } else if (n_read > 0) {
           LOG_INFO("Start to invoke callback function.");
-          callback_func_(n_read, buf);
+          //callback_func_(n_read, buf);
         }
       }
     }
@@ -256,5 +255,3 @@ void EpollTCPServer::AddToMainEpoll(int client_fd) {
     LOG_ERROR("Epoll Add Error");
   }
 }
-
-} //namespace ftcp
