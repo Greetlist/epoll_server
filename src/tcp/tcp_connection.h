@@ -35,6 +35,7 @@ private:
   int write_index_;
   int read_index_;
   uint32_t latest_message_len_;
+  uint64_t total_read_bytes_;
   bool input_buffer_full_;
   bool input_buffer_empty_;
   bool output_buffer_full_;

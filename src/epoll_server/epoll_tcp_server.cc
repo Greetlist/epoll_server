@@ -149,8 +149,8 @@ void EpollTCPServer::MainWorker(int pair_fd) {
         struct epoll_event new_ev;
         memset(&ev, 0, sizeof(new_ev));
         new_ev.data.fd = client_fd;
-        new_ev.events = EPOLLIN | EPOLLET;
-        //new_ev.events = EPOLLIN | EPOLLOUT;
+        //new_ev.events = EPOLLIN | EPOLLET;
+        new_ev.events = EPOLLIN;
         if ((ss = epoll_ctl(thread_ep, EPOLL_CTL_ADD, client_fd, &new_ev)) < 0) {
           LOG_ERROR("Epoll Add Error");
           continue;
@@ -162,12 +162,18 @@ void EpollTCPServer::MainWorker(int pair_fd) {
         int client = events[i].data.fd;
         TcpConnection* conn = tcp_connections_[client];
         int n_read = conn->Read();
+        conn->ExtractMessageFromInput();
 
         if (n_read < 0 && errno != EAGAIN) {
           LOG_ERROR("Read From Client Error");
         } else if (n_read == 0) {
           LOG_INFO("Client: [%d] close connection.", events[i].data.fd);
+          char final_buff[65536 * 2];
+          int cur_n = read(events[i].data.fd, final_buff, 65536 * 2);
+          LOG_INFO("final read: %d bytes", cur_n);
+          close(events[i].data.fd);
           epoll_ctl(thread_ep, EPOLL_CTL_DEL, events[i].data.fd, NULL);
+          delete tcp_connections_[events[i].data.fd];
           tcp_connections_.erase(events[i].data.fd);
         } else if (n_read > 0) {
           LOG_INFO("Start to invoke callback function.");
