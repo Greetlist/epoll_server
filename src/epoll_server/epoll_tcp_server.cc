@@ -168,9 +168,6 @@ void EpollTCPServer::MainWorker(int pair_fd) {
           LOG_ERROR("Read From Client Error");
         } else if (n_read == 0) {
           LOG_INFO("Client: [%d] close connection.", events[i].data.fd);
-          char final_buff[65536 * 2];
-          int cur_n = read(events[i].data.fd, final_buff, 65536 * 2);
-          LOG_INFO("final read: %d bytes", cur_n);
           close(events[i].data.fd);
           epoll_ctl(thread_ep, EPOLL_CTL_DEL, events[i].data.fd, NULL);
           delete tcp_connections_[events[i].data.fd];

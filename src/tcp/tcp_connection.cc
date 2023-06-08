@@ -44,7 +44,6 @@ int TcpConnection::Read() {
       }
       write_index_ += n_read;
     }
-    LOG_INFO("2");
   } else if (read_index_ <= write_index_) {
     struct iovec iov[2];
     iov[0].iov_base = input_buffer_ + write_index_;
@@ -64,11 +63,11 @@ int TcpConnection::Read() {
     }
   }
   LOG_INFO("read_index: %d, write_index: %d", read_index_, write_index_);
+  LOG_INFO("n_read: %d", n_read);
   if (n_read > 0) {
     input_buffer_empty_ = false;
     total_read_bytes_ += n_read;
   }
-  LOG_INFO("n_read: %d", n_read);
   return n_read;
 }
 
@@ -168,6 +167,6 @@ int TcpConnection::output_free_bytes_count() {
   return 0;
 }
 
-int TcpConnection::Write() {
+int TcpConnection::Write(char* buf, int) {
   return 0;
 }

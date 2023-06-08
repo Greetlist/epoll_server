@@ -20,7 +20,7 @@ public:
   void ExtractMessageFromInput();
   void QueueMessage(char*, int);
 
-  int Write();
+  int Write(char*, int data_len);
 
   int input_free_bytes_count();
   int input_data_bytes_count();
