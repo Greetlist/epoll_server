@@ -12,7 +12,6 @@
 #include <unistd.h>
 
 #include <thread>
-#include <unordered_map>
 #include <vector>
 #include <atomic>
 #include <mutex>
@@ -48,7 +47,6 @@ class EpollTCPServer : public EpollServerBase {
 
   std::vector<ThreadInfo> epoll_thread_info_vec_;
   std::vector<ProcessInfo> epoll_process_info_vec_;
-  std::unordered_map<int, TcpConnection*> tcp_connections_;
 
   std::string listen_addr_;
   int listen_port_;

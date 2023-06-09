@@ -68,6 +68,10 @@ int TcpConnection::Read() {
     input_buffer_empty_ = false;
     total_read_bytes_ += n_read;
   }
+  //read_buffer_->ReadFromFd(socket_fd_);
+  //if (read_buffer_->GetConsumableNum() > 0) {
+  //
+  //}
   return n_read;
 }
 

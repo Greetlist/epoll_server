@@ -8,12 +8,15 @@
 #include <functional>
 
 #include "logger/logger.h"
+#include "buffer/vec_buffer.h"
+#include "buffer/ring_buffer.h"
 
 class TcpConnection {
 public:
   TcpConnection();
   TcpConnection(int);
   ~TcpConnection();
+  void SetSocket(int socket_fd);
   void Init();
   void SetCallback(std::function<void(char*)>, std::function<void()>);
   int Read();
@@ -27,8 +30,10 @@ public:
   int output_data_bytes_count();
   int output_free_bytes_count();
 private:
-  std::function<void(char*)> OnMessage;
+  std::function<void(char*, int)> OnMessage;
   std::function<void()> OnWriteFinish;
+  VecBuffer read_buffer_;
+  VecBuffer write_buffer_;
   int socket_fd_;
   char* input_buffer_;
   char* output_buffer_;

@@ -1,20 +1,22 @@
-#ifndef __BUFFER_H_
-#define __BUFFER_H_
+#ifndef __RING_BUFFER_H_
+#define __RING_BUFFER_H_
 
-class CircleBuffer {
+class RingBuffer {
 public:
-  CircleBuffer();
-  ~CircleBuffer();
+  RingBuffer();
+  ~RingBuffer();
   void Init();
   
   inline char* GetBuffer();
   inline int GetWriteIndex();
   inline int GetReadIndex();
-  inline bool IsBufferFull();
-  inline bool IsBufferEmpty();
+  inline bool BufferFull();
+  inline bool BufferEmpty();
   inline uint64_t GetTotalHandleBytes();
   inline int GetFreeBytes();
   inline int GetUsedBytes();
+  int WriteToFd(int);
+  int ReadFromFd(int);
 private:
   char* buf_;
   int write_index_;

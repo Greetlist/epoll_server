@@ -1,40 +1,40 @@
-#include "tcp/buffer.h"
+#include "buffer/ring_buffer.h"
 
-CircleBuffer::CircleBuffer(): buf_(nullptr), write_index_(0), read_index_(0), total_handle_bytes(0), buffer_full_(false), buffer_empty_(true) {
+RingBuffer::RingBuffer(): buf_(nullptr), write_index_(0), read_index_(0), total_handle_bytes(0), buffer_full_(false), buffer_empty_(true) {
 }
 
-CircleBuffer::~CircleBuffer() {
+RingBuffer::~RingBuffer() {
   if (buf_ != nullptr) {
     delete buf_;
     buf_ = nullptr;
   }
 }
 
-CircleBuffer::Init() {
+RingBuffer::Init() {
   buf_ = new char[buffer_size_];
 }
-char* CircleBuffer::GetBuffer() {
+char* RingBuffer::GetBuffer() {
   return buf_;
 }
-int CircleBuffer::GetWriteIndex() {
+int RingBuffer::GetWriteIndex() {
   return write_index_;
 }
-int CircleBuffer::GetReadIndex() {
+int RingBuffer::GetReadIndex() {
   return read_index_;
 }
-bool CircleBuffer::IsBufferFull() {
+bool RingBuffer::BufferFull() {
   return buffer_full_;
 }
 
-bool CircleBuffer::IsBufferEmpty() {
+bool RingBuffer::BufferEmpty() {
   return buffer_empty_;
 }
 
-uint64_t CircleBuffer::GetTotalHandleBytes() {
+uint64_t RingBuffer::GetTotalHandleBytes() {
   return total_handle_bytes_;
 }
 
-int CircleBuffer::GetFreeBytes() {
+int RingBuffer::GetFreeBytes() {
   if (buffer_full_) {
     return 0;
   }
@@ -47,7 +47,7 @@ int CircleBuffer::GetFreeBytes() {
   return write_index_ - read_index_;
 }
 
-int CircleBuffer::GetUsedBytes() {
+int RingBuffer::GetUsedBytes() {
   if (buffer_full_) {
     return buffer_size_;
   }
@@ -58,6 +58,15 @@ int CircleBuffer::GetUsedBytes() {
     return buffer_size_ - read_index_ + write_index_;
   }
   return write_index_ - read_index_;
+}
+
+int RingBuffer::ReadFromFd(int fd) {
+  if (BufferFull()) {
+    return -1;
+  }
+}
+
+int RingBuffer::WriteToFd(int fd) {
 }
 
 
