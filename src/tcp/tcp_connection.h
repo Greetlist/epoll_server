@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <sys/uio.h>
 #include <string.h>
+#include <stdint.h>
 
 #include <functional>
 
@@ -13,37 +14,19 @@
 
 class TcpConnection {
 public:
-  TcpConnection();
-  TcpConnection(int);
+  explicit TcpConnection(int);
   ~TcpConnection();
-  void SetSocket(int socket_fd);
   void Init();
-  void SetCallback(std::function<void(char*, int)>);
   int Read();
-  void ExtractMessageFromInput();
+  int ExtractMessage();
   void QueueMessage(char*, int);
-
   int Write(char*, int);
-
-  int input_free_bytes_count();
-  int input_data_bytes_count();
-  int output_data_bytes_count();
-  int output_free_bytes_count();
+  uint32_t GetMessageLen(int);
 private:
   VecBuffer read_buffer_;
   VecBuffer write_buffer_;
   int socket_fd_;
-  char* input_buffer_;
-  char* output_buffer_;
-  int write_index_;
-  int read_index_;
-  uint32_t latest_message_len_;
-  uint64_t total_read_bytes_;
-  bool input_buffer_full_;
-  bool input_buffer_empty_;
-  bool output_buffer_full_;
-  bool output_buffer_empty_;
-  static constexpr int buffer_size_ = 65536;
+  int latest_message_type_;
   static constexpr int INT_SIZE = sizeof(int);
 };
 

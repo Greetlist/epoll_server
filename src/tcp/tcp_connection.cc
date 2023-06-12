@@ -1,136 +1,71 @@
 #include "tcp/tcp_connection.h"
 
-TcpConnection::TcpConnection() : socket_fd_(-1), input_buffer_(nullptr), output_buffer_(nullptr), write_index_(0), read_index_(0), latest_message_len_(0), total_read_bytes_(0), input_buffer_full_(false), input_buffer_empty_(true), output_buffer_full_(false), output_buffer_empty_(true) {
-}
-
-TcpConnection::TcpConnection(int sock_fd) : socket_fd_(sock_fd), input_buffer_(nullptr), output_buffer_(nullptr), write_index_(0), read_index_(0), latest_message_len_(0), total_read_bytes_(0), input_buffer_full_(false), input_buffer_empty_(true), output_buffer_full_(false), output_buffer_empty_(true) {
+TcpConnection::TcpConnection(int sock_fd) : socket_fd_(sock_fd), latest_message_type_(-1) {
 }
 
 TcpConnection::~TcpConnection() {
-  if (input_buffer_) {
-    delete input_buffer_;
-    input_buffer_ = nullptr;
-  }
-  if (output_buffer_) {
-    delete output_buffer_;
-    output_buffer_ = nullptr;
-  }
-  LOG_INFO("Total Read Bytes: %ld", total_read_bytes_);
+  LOG_INFO("Total Read Bytes: %ld", read_buffer_.GetTotalHandleBytes());
+  LOG_INFO("Total Write Bytes: %ld", write_buffer_.GetTotalHandleBytes());
 }
 
 void TcpConnection::Init() {
-  input_buffer_ = new char[buffer_size_];
-  output_buffer_ = new char[buffer_size_];
-}
-
-void TcpConnection::SetReadCallback(std::function<void(char*, int)> f) {
-  input_buffer_->SetCallback(f);
+  read_buffer_.Init();
+  write_buffer_.Init();
 }
 
 int TcpConnection::Read() {
-  return input_buffer_->ReadFromFd(socket_fd_);
+  int n_read = read_buffer_.ReadFromFd(socket_fd_);
+  return n_read;
 }
 
-void TcpConnection::ExtractMessageFromInput() {
+int TcpConnection::ExtractMessage() {
+  int total_handle_bytes = 0;
+  int unhandle_bytes = read_buffer_.GetUnHandleBytesNum();
+  char* read_index = read_buffer_.GetReadIndex();
   while (true) {
-    if (input_buffer_empty_) {
-      return;
+    if (unhandle_bytes <= 0) {
+      break;
     }
 
-    //read message len first
-    if (latest_message_len_ == 0 && input_data_bytes_count() < INT_SIZE) {
-      return;
+    //read message type first
+    if (latest_message_type_ == -1 && unhandle_bytes < INT_SIZE) {
+      break;
     }
-    if (latest_message_len_ == 0 && input_data_bytes_count() >= INT_SIZE) {
-      char cur_buf[INT_SIZE];
-      if (buffer_size_ - read_index_ < INT_SIZE) {
-        int left_size = buffer_size_ - read_index_;
-        memcpy(cur_buf, input_buffer_ + read_index_, left_size);
-        memcpy(cur_buf + left_size, input_buffer_, INT_SIZE - left_size);
-        read_index_ = INT_SIZE - left_size;
-      } else {
-        memcpy(cur_buf, input_buffer_ + read_index_, INT_SIZE);
-        read_index_ += INT_SIZE;
-      }
+    if (latest_message_type_ == -1 && unhandle_bytes >= INT_SIZE) {
       uint32_t cur;
-      memcpy(&cur, cur_buf, INT_SIZE);
-      latest_message_len_ = ntohl(cur);
-      if (read_index_ == write_index_) {
-        input_buffer_empty_ = true;
-      }
-    }
-    if (input_buffer_empty_) {
-      return;
+      memcpy(&cur, read_index, INT_SIZE);
+      latest_message_type_ = ntohl(cur);
+      read_index += INT_SIZE;
+      total_handle_bytes += INT_SIZE;
+      unhandle_bytes -= INT_SIZE;
     }
 
+    uint32_t message_len = GetMessageLen(latest_message_type_);
     // current data is not enough to construct one message
-    if (latest_message_len_ > input_data_bytes_count()) {
-      return;
-    } else { //has enough data for constuction
-      char message[latest_message_len_];
-      if (buffer_size_ - read_index_ < latest_message_len_) {
-        int left_size = buffer_size_ - read_index_;
-        memcpy(message, input_buffer_ + read_index_, left_size);
-        memcpy(message + left_size, input_buffer_, latest_message_len_ - left_size);
-        read_index_ = latest_message_len_ - left_size;
-      } else {
-        memcpy(message, input_buffer_ + read_index_, latest_message_len_);
-        read_index_ += latest_message_len_;
-      }
-      if (read_index_ == write_index_) {
-        input_buffer_empty_ = true;
-      }
-      QueueMessage(message, latest_message_len_);
-      latest_message_len_ = 0;
+    if (message_len > unhandle_bytes - INT_SIZE) {
+      return INT_SIZE;
+    } else { //has enough data for construction
+      char message[message_len];
+      memcpy(message, read_index, message_len);
+      QueueMessage(message, message_len);
+      total_handle_bytes += message_len;
+      unhandle_bytes -= message_len;
+      latest_message_type_ = -1;
     }
   }
+  return total_handle_bytes;
 }
 
 void TcpConnection::QueueMessage(char* message, int message_len) {
-  uint32_t req_type_no;
-  memcpy(&req_type_no, message, INT_SIZE);
-  uint32_t real_request_type = ntohl(req_type_no);
-  LOG_INFO("message_len is: %d, req_type: %d", message_len, real_request_type);
-}
-
-int TcpConnection::input_free_bytes_count() {
-  if (input_buffer_full_) {
-    return 0;
-  }
-  if (input_buffer_empty_) {
-    return buffer_size_;
-  }
-  if (read_index_ < write_index_) {
-    return buffer_size_ - write_index_ + read_index_;
-  }
-  return read_index_ - write_index_;
-}
-
-int TcpConnection::input_data_bytes_count() {
-  if (input_buffer_full_) {
-    return buffer_size_;
-  }
-  if (input_buffer_empty_) {
-    return 0;
-  }
-  if (read_index_ > write_index_) {
-    return buffer_size_ - read_index_ + write_index_;
-  }
-  return write_index_ - read_index_;
-}
-
-int TcpConnection::output_data_bytes_count() {
-  return 0;
-}
-
-int TcpConnection::output_free_bytes_count() {
-  return 0;
+  LOG_INFO("message_type is: %d, message_len: %d", latest_message_type_, message_len);
 }
 
 int TcpConnection::Write(char* data, int data_len) {
-  write_buffer_->SaveData(data, data_len);
+  write_buffer_.SaveData(data, data_len);
   return 0;
 }
 
-
-
+//TODO
+uint32_t TcpConnection::GetMessageLen(int message_type) {
+  return 1;
+}

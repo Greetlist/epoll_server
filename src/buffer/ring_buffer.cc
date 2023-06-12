@@ -1,6 +1,6 @@
 #include "buffer/ring_buffer.h"
 
-RingBuffer::RingBuffer(): buf_(nullptr), write_index_(0), read_index_(0), total_handle_bytes(0), buffer_full_(false), buffer_empty_(true) {
+RingBuffer::RingBuffer(): buf_(nullptr), write_index_(0), read_index_(0), total_handle_bytes_(0), buffer_full_(false), buffer_empty_(true) {
 }
 
 RingBuffer::~RingBuffer() {
@@ -10,7 +10,7 @@ RingBuffer::~RingBuffer() {
   }
 }
 
-RingBuffer::Init() {
+void RingBuffer::Init() {
   buf_ = new char[buffer_size_];
 }
 char* RingBuffer::GetBuffer() {
@@ -68,8 +68,3 @@ int RingBuffer::ReadFromFd(int fd) {
 
 int RingBuffer::WriteToFd(int fd) {
 }
-
-
-
-
-

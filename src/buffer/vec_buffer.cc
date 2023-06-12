@@ -1,6 +1,6 @@
 #include "buffer/vec_buffer.h"
 
-VecBuffer::VecBuffer() : buffer_(nullptr), current_buffer_size_(0), write_index_(0), read_index_(0), enlarge_count_(0) {
+VecBuffer::VecBuffer() : buffer_(nullptr), current_buffer_size_(0), write_index_(0), read_index_(0), enlarge_count_(0), total_handle_bytes_(0) {
 }
 
 VecBuffer::~VecBuffer() {
@@ -15,10 +15,6 @@ void VecBuffer::Init() {
   current_buffer_size_ = init_buffer_size_;
 }
 
-void VecBuffer::SetCallback(std::function<int(char*, int)> func) {
-  on_recv_data_ = func;
-}
-
 int VecBuffer::ReadFromFd(int fd) {
   int left_data_size = current_buffer_size_ - write_index_;
   char cur_buffer[init_buffer_size_];
@@ -28,14 +24,14 @@ int VecBuffer::ReadFromFd(int fd) {
   iov[0].iov_len = left_data_size;
   iov[1].iov_base = cur_buffer;
   iov[1].iov_len = init_buffer_size_;
-  int n_read = readv(socket_fd_, iov, 2);
+  int n_read = readv(fd, iov, 2);
   if (n_read < 0) {
     if (errno != EAGAIN) {
       //log fatal
     } else {
       //just quit
     }
-    return;
+    return -1;
   }
 
   if (n_read > left_data_size) {
@@ -43,14 +39,10 @@ int VecBuffer::ReadFromFd(int fd) {
   } else {
     write_index_ += n_read;
   }
-  read_index_ += on_recv_data_(buffer_ + read_index_, write_index_ - read_index_);
-  if (read_index_ == write_index_) {
-    write_index_ = 0;
-    read_index_ = 0;
-  }
+  return n_read;
 }
 
-int VecBuffer::SaveData(char* data, int data_len) {
+void VecBuffer::SaveData(char* data, int data_len) {
   int left_data_size = current_buffer_size_ - write_index_;
   if (left_data_size < data_len) {
     memmove(buffer_ + write_index_, data, left_data_size);
@@ -65,34 +57,44 @@ int VecBuffer::WriteToFd(int fd) {
   struct iovec iov;
   iov.iov_base = buffer_ + read_index_;
   iov.iov_len = left_data_size;
-  int n_write = writev(socket_fd_, iov, 1);
+  int n_write = writev(fd, &iov, 1);
   if (n_write < 0) {
     if (errno != EAGAIN) {
       //log fatal
     } else {
       //just quit
     }
-    return;
+    return -1;
   }
 
-  read_index_ += n_write;
-  if (read_index == write_index_) {
-    write_index_ = 0;
-    read_index_ = 0;
-  }
+  write_index_ += n_write;
+  return n_write;
 }
 
 char* VecBuffer::GetReadIndex() {
   return buffer_;
 }
 
+int VecBuffer::GetUnHandleBytesNum() {
+  return write_index_ - read_index_;
+}
+
+uint64_t VecBuffer::GetTotalHandleBytes() {
+  return total_handle_bytes_;
+}
+
+void VecBuffer::IncrReadIndex(int num) {
+  read_index_ += num;
+  total_handle_bytes_ += num;
+}
+
 void VecBuffer::EnlargeBufferAndMoveData(char* new_data, int new_data_len) {
   char* new_buffer = new char[current_buffer_size_ * 2];
-  if (new_buffer_ == nullptr) {
+  if (new_buffer == nullptr) {
     //log fatal
     return;
   }
-  memmove(new_buffer_, buffer_, current_buffer_size_);
+  memmove(new_buffer, buffer_, current_buffer_size_);
   memmove(new_buffer + current_buffer_size_, new_data, new_data_len);
 
   delete buffer_;

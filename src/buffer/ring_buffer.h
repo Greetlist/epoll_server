@@ -1,6 +1,8 @@
 #ifndef __RING_BUFFER_H_
 #define __RING_BUFFER_H_
 
+#include <stdint.h>
+
 class RingBuffer {
 public:
   RingBuffer();

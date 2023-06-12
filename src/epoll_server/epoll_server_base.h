@@ -26,14 +26,8 @@ public:
   EpollServerBase() {};
   virtual ~EpollServerBase() {};
   virtual ReturnCode Init() {return ReturnCode::SUCCESS;}
-  virtual void InitProtocol();
   virtual void Start() {}
   virtual void Stop() {}
-  virtual void SetDataCallback(std::function<void(int, char*)> f) {
-    callback_func_ = f;
-  }
-protected:
-  std::function<void(int, char*)> callback_func_;
 };
 
 #endif

@@ -31,7 +31,6 @@ class EpollTCPServer : public EpollServerBase {
     Stop();
   };
   virtual ReturnCode Init() override;
-  virtual void InitProtocol() override;
   virtual void Start() override;
   virtual void Stop() override;
  private:

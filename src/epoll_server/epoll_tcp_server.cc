@@ -149,7 +149,6 @@ void EpollTCPServer::MainWorker(int pair_fd) {
 
         TcpConnection* new_connection = new TcpConnection(client_fd);
         new_connection->Init();
-        new_connection->SetCallback(callback_func_);
         struct epoll_event new_ev;
         memset(&ev, 0, sizeof(new_ev));
         new_ev.data.ptr = new_connection;
@@ -160,9 +159,8 @@ void EpollTCPServer::MainWorker(int pair_fd) {
           continue;
         }
       } else {
-        TcpConnection* conn = events[i].data.ptr;
+        TcpConnection* conn = static_cast<TcpConnection*>(events[i].data.ptr);
         int n_read = conn->Read();
-        conn->ExtractMessageFromInput();
 
         if (n_read < 0 && errno != EAGAIN) {
           LOG_ERROR("Read From Client Error");
@@ -172,8 +170,8 @@ void EpollTCPServer::MainWorker(int pair_fd) {
           epoll_ctl(thread_ep, EPOLL_CTL_DEL, events[i].data.fd, NULL);
           delete conn;
         } else if (n_read > 0) {
-          LOG_INFO("Start to invoke callback function.");
-          //callback_func_(n_read, buf);
+          LOG_INFO("Start to extract message.");
+          conn->ExtractMessage();
         }
       }
     }
@@ -242,7 +240,7 @@ void EpollTCPServer::SendToChildThread(int client_fd) {
   ThreadInfo& info = epoll_thread_info_vec_[GetNextWorkerIndex()];
   std::string client_fd_str = std::to_string(client_fd);
   int status = write(info.pair_fd, client_fd_str.c_str(), client_fd_str.size());
-  if (status <=0) {
+  if (status <= 0) {
     LOG_ERROR("Write Error");
   }
 }
