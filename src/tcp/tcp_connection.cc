@@ -23,56 +23,12 @@ void TcpConnection::Init() {
   output_buffer_ = new char[buffer_size_];
 }
 
-void TcpConnection::SetCallback(std::function<void(char*)> message_callback, std::function<void()> write_callback) {
-  OnMessage = message_callback;
-  OnWriteFinish = write_callback;
+void TcpConnection::SetReadCallback(std::function<void(char*, int)> f) {
+  input_buffer_->SetCallback(f);
 }
 
 int TcpConnection::Read() {
-  if (input_buffer_full_) {
-    return -1;
-  }
-
-  int n_read;
-  if (read_index_ > write_index_) {
-    struct iovec iov;
-    iov.iov_base = input_buffer_ + write_index_;
-    iov.iov_len = read_index_ - write_index_;
-    if ((n_read = readv(socket_fd_, &iov, 1)) > 0) {
-      if (n_read == read_index_ - write_index_) {
-        input_buffer_full_ = true;
-      }
-      write_index_ += n_read;
-    }
-  } else if (read_index_ <= write_index_) {
-    struct iovec iov[2];
-    iov[0].iov_base = input_buffer_ + write_index_;
-    iov[0].iov_len = buffer_size_ - write_index_;
-    iov[1].iov_base = input_buffer_;
-    iov[1].iov_len = read_index_;
-    n_read = readv(socket_fd_, iov, 2);
-    if (n_read > 0) {
-      if (n_read == buffer_size_ - write_index_ + read_index_) {
-        input_buffer_full_ = true;
-        write_index_ = read_index_;
-      } else if (n_read < buffer_size_ - write_index_) {
-        write_index_ += n_read;
-      } else if (n_read >= buffer_size_ - write_index_) {
-        write_index_ = n_read - (buffer_size_ - write_index_);
-      }
-    }
-  }
-  LOG_INFO("read_index: %d, write_index: %d", read_index_, write_index_);
-  LOG_INFO("n_read: %d", n_read);
-  if (n_read > 0) {
-    input_buffer_empty_ = false;
-    total_read_bytes_ += n_read;
-  }
-  //read_buffer_->ReadFromFd(socket_fd_);
-  //if (read_buffer_->GetConsumableNum() > 0) {
-  //
-  //}
-  return n_read;
+  return input_buffer_->ReadFromFd(socket_fd_);
 }
 
 void TcpConnection::ExtractMessageFromInput() {
@@ -171,6 +127,10 @@ int TcpConnection::output_free_bytes_count() {
   return 0;
 }
 
-int TcpConnection::Write(char* buf, int) {
+int TcpConnection::Write(char* data, int data_len) {
+  write_buffer_->SaveData(data, data_len);
   return 0;
 }
+
+
+

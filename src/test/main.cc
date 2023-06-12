@@ -6,7 +6,7 @@
 #include <iostream>
 
 int main(int argc, char** argv) {
-  std::unordered_map<std::string, std::string> config {
+  std::unordered_map<std::string, std::string> config{
     {"listen_addr", "0.0.0.0"},
     {"listen_port", "8888"},
   };

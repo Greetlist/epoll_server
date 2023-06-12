@@ -4,26 +4,24 @@
 #include <arpa/inet.h>
 #include <sys/uio.h>
 #include <string.h>
+#include <errno.h>
 
 class VecBuffer {
 public:
   VecBuffer();
   ~VecBuffer();
   void Init();
+  void SetCallback(std::function<int(char*, int)> func);
 
-  // produce function
   int ReadFromFd(int);
   int SaveData(char*, int);
-  // consume function
-  int FetchData(char*);
   int WriteToFd(int);
 
-  inline int GetConsumableNum();
-  inline int GetCurrentDataNum();
+  inline char* GetReadIndex();
 private:
   void EnlargeBufferAndMoveData(char*, int);
 private:
-  std::function<int(char*, int)> OnMessage;
+  std::function<int(char*, int)> on_recv_data_;
   char* buffer_;
   int current_buffer_size_;
   int write_index_;

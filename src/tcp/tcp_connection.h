@@ -18,20 +18,18 @@ public:
   ~TcpConnection();
   void SetSocket(int socket_fd);
   void Init();
-  void SetCallback(std::function<void(char*)>, std::function<void()>);
+  void SetCallback(std::function<void(char*, int)>);
   int Read();
   void ExtractMessageFromInput();
   void QueueMessage(char*, int);
 
-  int Write(char*, int data_len);
+  int Write(char*, int);
 
   int input_free_bytes_count();
   int input_data_bytes_count();
   int output_data_bytes_count();
   int output_free_bytes_count();
 private:
-  std::function<void(char*, int)> OnMessage;
-  std::function<void()> OnWriteFinish;
   VecBuffer read_buffer_;
   VecBuffer write_buffer_;
   int socket_fd_;

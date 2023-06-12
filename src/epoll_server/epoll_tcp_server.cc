@@ -149,6 +149,7 @@ void EpollTCPServer::MainWorker(int pair_fd) {
 
         TcpConnection* new_connection = new TcpConnection(client_fd);
         new_connection->Init();
+        new_connection->SetCallback(callback_func_);
         struct epoll_event new_ev;
         memset(&ev, 0, sizeof(new_ev));
         new_ev.data.ptr = new_connection;
