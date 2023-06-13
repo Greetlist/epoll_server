@@ -17,10 +17,10 @@ public:
   void SaveData(char*, int);
   int WriteToFd(int);
 
-  inline char* GetReadIndex();
-  inline int GetUnHandleBytesNum();
-  inline uint64_t GetTotalHandleBytes();
-  inline void IncrReadIndex(int);
+  char* GetReadIndex();
+  int GetUnHandleBytesNum();
+  uint64_t GetTotalHandleBytes();
+  void IncrReadIndex(int);
 private:
   void EnlargeBufferAndMoveData(char*, int);
 private:

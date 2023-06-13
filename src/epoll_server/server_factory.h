@@ -15,7 +15,8 @@ class EpollServerFactory {
      if (instance_ == nullptr) {
        std::call_once(instance_guard_, [=]() {
          if (server_type == ServerType::TCP) {
-           EpollRunMode mode = EpollRunMode::UseProcess;
+           //EpollRunMode mode = EpollRunMode::UseProcess;
+           EpollRunMode mode = EpollRunMode::UseThread;
            instance_ = new EpollTCPServer(mode, parallel, listen_addr, listen_port);
          } else if (server_type == ServerType::UDP) {
            instance_ = new EpollUDPServer(listen_addr, listen_port);

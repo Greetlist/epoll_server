@@ -10,7 +10,6 @@
 
 #include "logger/logger.h"
 #include "buffer/vec_buffer.h"
-#include "buffer/ring_buffer.h"
 
 class TcpConnection {
 public:
